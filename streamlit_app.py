@@ -1,16 +1,15 @@
 import streamlit as st
 from openai import OpenAI
+from PyPDF2 import PdfReader  # Use PdfReader instead of PdfFileReader
 
 # Show title and description.
-st.title("📄 Document question answering")
+st.title("📄 My Document question answering_Shraddha- HW 1")
 st.write(
     "Upload a document below and ask a question about it – GPT will answer! "
     "To use this app, you need to provide an OpenAI API key, which you can get [here](https://platform.openai.com/account/api-keys). "
 )
 
-# Ask user for their OpenAI API key via `st.text_input`.
-# Alternatively, you can store the API key in `./.streamlit/secrets.toml` and access it
-# via `st.secrets`, see https://docs.streamlit.io/develop/concepts/connections/secrets-management
+# Ask user for their OpenAI API key
 openai_api_key = st.text_input("OpenAI API Key", type="password")
 if not openai_api_key:
     st.info("Please add your OpenAI API key to continue.", icon="🗝️")
@@ -19,12 +18,12 @@ else:
     # Create an OpenAI client.
     client = OpenAI(api_key=openai_api_key)
 
-    # Let the user upload a file via `st.file_uploader`.
+    # Allow .txt, .md, and .pdf files
     uploaded_file = st.file_uploader(
-        "Upload a document (.txt or .md)", type=("txt", "md")
+        "Upload a document (.txt, .md, or .pdf)", type=("txt", "md", "pdf")
     )
 
-    # Ask the user for a question via `st.text_area`.
+    # Ask the user for a question
     question = st.text_area(
         "Now ask a question about the document!",
         placeholder="Can you give me a short summary?",
@@ -32,9 +31,18 @@ else:
     )
 
     if uploaded_file and question:
+        file_extension = uploaded_file.name.split(".")[-1].lower()
 
-        # Process the uploaded file and question.
-        document = uploaded_file.read().decode()
+        # Handle text or PDF
+        if file_extension in ["txt", "md"]:
+            document = uploaded_file.read().decode()
+        elif file_extension == "pdf":
+            pdf_reader = PdfReader(uploaded_file)  # Updated here
+            document = ""
+            for page in pdf_reader.pages:       # Use `pages` instead of `getPage`
+                document += page.extract_text()
+
+        # Prepare messages
         messages = [
             {
                 "role": "user",
@@ -42,12 +50,11 @@ else:
             }
         ]
 
-        # Generate an answer using the OpenAI API.
+        # Generate answer
         stream = client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-5-nano",
             messages=messages,
             stream=True,
         )
 
-        # Stream the response to the app using `st.write_stream`.
         st.write_stream(stream)
