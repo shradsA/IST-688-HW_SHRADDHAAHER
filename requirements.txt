@@ -1,3 +1,7 @@
 PyPDF2
 streamlit
 openai
+cohere
+beautifulsoup4
+requests
+groq
