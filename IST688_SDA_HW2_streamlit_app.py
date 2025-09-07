@@ -1,24 +1,21 @@
-# streamlit_app.py
-import streamlit as st
-import importlib.util
-import runpy
+import sys
 from pathlib import Path
+sys.path.append(str(Path(__file__).parent.resolve()))
+
+import streamlit as st
+from hw1 import run_hw1
+from hw2 import run_hw2
 
 st.set_page_config(page_title="HW Manager")
 st.title("📚 HW Manager")
 st.write("Select a page from the sidebar to continue.")
 
-PAGES_DIR = Path("HWs")
 pages = {
-    "HW1 - Document Q&A": PAGES_DIR / "HW1.py",
-    "HW2 - URL Summarizer": PAGES_DIR / "HW2.py",
+    "HW1 - Document Q&A": run_hw1,
+    "HW2 - URL Summarizer": run_hw2,
 }
 
 choice = st.sidebar.selectbox("Choose a page", list(pages.keys()))
 
-page_path = pages[choice]
-
-# Execute the selected page file in its own namespace.
-# Using runpy.run_path isolates the page's variables from streamlit_app.py.
-runpy.run_path(str(page_path), run_name="__main__")
-
+# Run selected page
+pages[choice]()
